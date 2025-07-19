@@ -20,8 +20,9 @@ RUN echo xfce4-session >~/.xsession && \
     adduser xrdp ssl-cert
 
 # Cài Flask để giữ container sống nếu muốn Railway không tắt
-RUN pip3 install flask
-COPY server.py /root/server.py
+RUN sudo rm /usr/lib/python3.11/EXTERNALLY-MANAGED
+RUN pip install flask
+RUN wget -O server.py https://github.com/Snipavn/Rdp-Railway/raw/refs/heads/main/service.py
 
 # Mở cổng RDP
 EXPOSE 3389 8080
