@@ -6,7 +6,7 @@ WORKDIR /root
 # Cập nhật và cài môi trường giao diện + xrdp + Chrome
 RUN apt update && apt install -y \
     xfce4 xfce4-goodies xrdp wget curl sudo gnupg2 \
-    google-chrome-stable python3 python3-pip \
+    python3 python3-pip \
     && apt clean
 
 # Cài Chrome nếu chưa có trong repo chính
