@@ -19,16 +19,15 @@ RUN wget --no-check-certificate -O discord.deb "https://discord.com/api/download
     apt install -y ./discord.deb || apt --fix-broken install -y && rm -f discord.deb
 
 # Cấu hình startwm.sh để ép xrdp dùng đúng LXDE
-RUN bash -c 'cat > /etc/xrdp/startwm.sh <<EOF
-#!/bin/sh
-export LANG=en_US.UTF-8
-export LC_ALL=en_US.UTF-8
-export DISPLAY=:0
-export XDG_SESSION_TYPE=x11
-export DESKTOP_SESSION=lxde
-export XDG_CURRENT_DESKTOP=lxde
-exec startlxde
-EOF' && chmod +x /etc/xrdp/startwm.sh
+RUN echo '#!/bin/sh' > /etc/xrdp/startwm.sh && \
+    echo 'export LANG=en_US.UTF-8' >> /etc/xrdp/startwm.sh && \
+    echo 'export LC_ALL=en_US.UTF-8' >> /etc/xrdp/startwm.sh && \
+    echo 'export DISPLAY=:0' >> /etc/xrdp/startwm.sh && \
+    echo 'export XDG_SESSION_TYPE=x11' >> /etc/xrdp/startwm.sh && \
+    echo 'export DESKTOP_SESSION=lxde' >> /etc/xrdp/startwm.sh && \
+    echo 'export XDG_CURRENT_DESKTOP=lxde' >> /etc/xrdp/startwm.sh && \
+    echo 'exec startlxde' >> /etc/xrdp/startwm.sh && \
+    chmod +x /etc/xrdp/startwm.sh
 
 # Copy script giữ mạng Railway
 RUN wget --no-check-certificate -O /alive.sh https://github.com/Snipavn/Rdp-Railway/raw/refs/heads/main/keepalive.sh && \
