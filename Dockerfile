@@ -4,19 +4,19 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 # Cập nhật & cài gói cần thiết
 RUN apt update && apt upgrade -y && \
-    apt install -y xrdp xfce4 xfce4-goodies wget sudo curl dbus-x11 xterm software-properties-common gnupg2
+    apt install -y xrdp xfce4 xfce4-goodies sudo curl wget dbus-x11 xterm software-properties-common gnupg2
 
 # Tạo user
 RUN useradd -m snipavn && echo 'snipavn:meobell' | chpasswd && adduser snipavn sudo
 
-# Cài Google Chrome
-RUN wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /usr/share/keyrings/google.gpg && \
-    echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google.gpg] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list && \
-    apt update && apt install -y google-chrome-stable
+# Cài Google Chrome (tránh bị lỗi GPG key)
+RUN wget -O chrome.deb https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb && \
+    apt install -y ./chrome.deb || apt --fix-broken install -y && \
+    rm chrome.deb
 
-# Cài Discord (AppImage từ link chính chủ + fix 403 bằng User-Agent)
+# Cài Discord AppImage qua link mirror không bị chặn
 RUN mkdir -p /home/snipavn/Apps && \
-    wget --header="User-Agent: Mozilla/5.0" -O /home/snipavn/Apps/Discord.AppImage "https://discord.com/api/download?platform=linux&format=AppImage" && \
+    wget -O /home/snipavn/Apps/Discord.AppImage "https://github.com/Snipavn/Discord-AppImage/releases/download/0.0.102/Discord.AppImage" && \
     chmod +x /home/snipavn/Apps/Discord.AppImage && \
     chown -R snipavn:snipavn /home/snipavn/Apps
 
@@ -24,11 +24,14 @@ RUN mkdir -p /home/snipavn/Apps && \
 RUN echo "startxfce4" > /home/snipavn/.xsession && \
     chown snipavn:snipavn /home/snipavn/.xsession
 
-# Copy script keepalive
-RUN wget -O keep.sh https://github.com/Snipavn/Rdp-Railway/raw/refs/heads/main/keepalive.sh
+# Ghi lại DNS để tránh mất mạng trong Railway
+RUN rm -f /etc/resolv.conf && \
+    echo "nameserver 1.1.1.1" > /etc/resolv.conf
 
-# Mở port 3389
+# Copy script giữ mạng Railway
+RUN wget -O keep.sh https://github.com/Snipavn/Rdp-Railway/raw/refs/heads/main/keepalive.sh
+# Mở port XRDP
 EXPOSE 3389
 
-# CMD khởi động dịch vụ + keepalive
-CMD service dbus start && service xrdp start && bash keep.sh
+# CMD khởi động XRDP và keepalive
+CMD service dbus start && service xrdp start && sh keep.sh
