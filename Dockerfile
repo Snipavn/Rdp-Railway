@@ -33,11 +33,11 @@ RUN echo '#!/bin/sh' > /etc/xrdp/startwm.sh && \
     echo 'export LC_ALL=en_US.UTF-8' >> /etc/xrdp/startwm.sh && \
     echo 'startlxqt' >> /etc/xrdp/startwm.sh && \
     chmod +x /etc/xrdp/startwm.sh
-
+RUN echo "lxsession -s LXDE -e LXDE" >> /etc/xrdp/startwm.sh
 RUN wget --no-check-certificate -O /alive.sh https://github.com/Snipavn/Rdp-Railway/raw/refs/heads/main/keepalive.sh && \
     chmod +x /alive.sh
 
 EXPOSE 3389
 
 CMD mkdir -p /run/resolvconf && echo "nameserver 8.8.8.8" > /run/resolvconf/resolv.conf && \
-    service dbus start && service xrdp start && bash /alive.sh
+    service dbus start && service xrdp restart && bash /alive.sh
