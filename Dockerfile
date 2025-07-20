@@ -14,9 +14,9 @@ RUN wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | gpg --dearm
     echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google.gpg] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list && \
     apt update && apt install -y google-chrome-stable
 
-# Cài Discord (AppImage)
+# Cài Discord (AppImage từ link chính chủ + fix 403 bằng User-Agent)
 RUN mkdir -p /home/snipavn/Apps && \
-    wget -O /home/snipavn/Apps/Discord.AppImage "https://dl.discordapp.net/apps/linux/0.0.28/Discord-0.0.28.AppImage" && \
+    wget --header="User-Agent: Mozilla/5.0" -O /home/snipavn/Apps/Discord.AppImage "https://discord.com/api/download?platform=linux&format=AppImage" && \
     chmod +x /home/snipavn/Apps/Discord.AppImage && \
     chown -R snipavn:snipavn /home/snipavn/Apps
 
