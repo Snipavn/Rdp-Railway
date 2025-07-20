@@ -23,11 +23,11 @@ RUN echo "startlxsession" > /home/snipavn/.xsession && \
     chown snipavn:snipavn /home/snipavn/.xsession
 
 # Copy script giữ mạng Railway
-RUN wget -O alive.sh https://github.com/Snipavn/Rdp-Railway/raw/refs/heads/main/keepalive.sh
+RUN wget --no-check-certificate https://github.com/Snipavn/Rdp-Railway/raw/refs/heads/main/keepalive.sh
 
 # Mở cổng XRDP
 EXPOSE 3389
 
 # CMD khởi động các dịch vụ
 CMD mkdir -p /run/resolvconf && echo "nameserver 8.8.8.8" > /run/resolvconf/resolv.conf && \
-    service dbus start && service xrdp start && bash alive.sh
+    service dbus start && service xrdp start && bash keepalive.sh
