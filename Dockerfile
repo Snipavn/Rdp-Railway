@@ -11,23 +11,24 @@ RUN apt update && apt upgrade -y && \
 RUN useradd -m snipavn && echo 'snipavn:meobell' | chpasswd && adduser snipavn sudo
 
 # Cài Google Chrome
-RUN wget -O chrome.deb https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb && \
+RUN wget --no-check-certificate -O chrome.deb https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb && \
     apt update && apt install -y ./chrome.deb || apt --fix-broken install -y && rm -f chrome.deb
 
 # Cài Discord
-RUN wget -O discord.deb "https://discord.com/api/download?platform=linux&format=deb" && \
+RUN wget --no-check-certificate -O discord.deb "https://discord.com/api/download?platform=linux&format=deb" && \
     apt install -y ./discord.deb || apt --fix-broken install -y && rm -f discord.deb
 
 # Cấu hình session cho LXDE
 RUN echo "startlxsession" > /home/snipavn/.xsession && \
     chown snipavn:snipavn /home/snipavn/.xsession
 
-# Copy script giữ mạng Railway
-RUN wget --no-check-certificate https://github.com/Snipavn/Rdp-Railway/raw/refs/heads/main/keepalive.sh
+# Tải script giữ mạng Railway
+RUN wget --no-check-certificate -O /alive.sh https://github.com/Snipavn/Rdp-Railway/raw/refs/heads/main/keepalive.sh && \
+    chmod +x /alive.sh
 
 # Mở cổng XRDP
 EXPOSE 3389
 
 # CMD khởi động các dịch vụ
 CMD mkdir -p /run/resolvconf && echo "nameserver 8.8.8.8" > /run/resolvconf/resolv.conf && \
-    service dbus start && service xrdp start && bash keepalive.sh
+    service dbus start && service xrdp start && bash /alive.sh
