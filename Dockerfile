@@ -1,44 +1,34 @@
-FROM ubuntu:20.04
+FROM ubuntu:22.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Update & cài cơ bản
-RUN apt update && apt install -y \
-    xfce4 xfce4-goodies xrdp curl sudo dbus-x11 \
-    wget libasound2 libgconf-2-4 libnss3 libxss1 libxtst6 \
-    libatk1.0-0 libgtk-3-0 libnotify4 libx11-xcb1 x11-xserver-utils \
-    fonts-dejavu-core unzip
+# Cập nhật & cài gói cần thiết
+RUN apt update && apt upgrade -y && \
+    apt install -y xrdp xfce4 xfce4-goodies wget sudo curl dbus-x11 xterm software-properties-common gnupg2
 
-# Tạo user snipavn
-RUN useradd -m -s /bin/bash snipavn && echo "snipavn:meobell" | chpasswd && adduser snipavn sudo
+# Tạo user
+RUN useradd -m snipavn && echo 'snipavn:meobell' | chpasswd && adduser snipavn sudo
 
-# Cấu hình Xrdp + session
-RUN echo xfce4-session > /home/snipavn/.xsession && \
-    chown snipavn:snipavn /home/snipavn/.xsession && \
-    touch /home/snipavn/.Xauthority && \
-    chown snipavn:snipavn /home/snipavn/.Xauthority && \
-    adduser xrdp ssl-cert
+# Cài Google Chrome
+RUN wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /usr/share/keyrings/google.gpg && \
+    echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google.gpg] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list && \
+    apt update && apt install -y google-chrome-stable
 
-# Fix lỗi terminal chưa được register
-RUN ln -sf /usr/bin/xfce4-terminal /usr/bin/x-terminal-emulator
-
-# Cài Chrome
-RUN wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb && \
-    apt install -y ./google-chrome-stable_current_amd64.deb || apt --fix-broken install -y && \
-    rm google-chrome-stable_current_amd64.deb
-
-# Cài Discord AppImage
+# Cài Discord (AppImage)
 RUN mkdir -p /home/snipavn/Apps && \
-    wget -O /home/snipavn/Apps/Discord.AppImage https://discord.com/api/download?platform=linux&format=AppImage && \
+    wget -O /home/snipavn/Apps/Discord.AppImage "https://dl.discordapp.net/apps/linux/0.0.28/Discord-0.0.28.AppImage" && \
     chmod +x /home/snipavn/Apps/Discord.AppImage && \
     chown -R snipavn:snipavn /home/snipavn/Apps
 
-# Ghi đè DNS để tránh mất mạng
-RUN rm -f /etc/resolv.conf && echo "nameserver 1.1.1.1" > /etc/resolv.conf
+# Cấu hình XFCE cho xrdp
+RUN echo "startxfce4" > /home/snipavn/.xsession && \
+    chown snipavn:snipavn /home/snipavn/.xsession
 
-# Tạo script giữ mạng Railway
-RUN wget -O keepalive.sh https://github.com/Snipavn/Rdp-Railway/raw/refs/heads/main/keepalive.sh
+# Copy script keepalive
+RUN wget -O keep.sh https://github.com/Snipavn/Rdp-Railway/raw/refs/heads/main/keepalive.sh
 
+# Mở port 3389
 EXPOSE 3389
 
-CMD service dbus start && service xrdp start && sh keepalive.sh
+# CMD khởi động dịch vụ + keepalive
+CMD service dbus start && service xrdp start && bash keep.sh
