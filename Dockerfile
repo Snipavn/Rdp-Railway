@@ -25,10 +25,11 @@ RUN echo "startxfce4" > /home/snipavn/.xsession && \
 
 # Copy script giữ mạng Railway
 RUN wget -O alive.sh https://github.com/Snipavn/Rdp-Railway/raw/refs/heads/main/keepalive.sh
+# tạo file 
 
 # Mở port XRDP
 EXPOSE 3389
 
 # CMD khởi động XRDP và keepalive
-CMD CMD echo 'nameserver 1.1.1.1' > /run/resolvconf/resolv.conf && \
+CMD echo 'nameserver 1.1.1.1' > /run/resolvconf/resolv.conf && \
     service dbus start && service xrdp start && bash alive.sh
