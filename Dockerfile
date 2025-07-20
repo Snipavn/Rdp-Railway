@@ -31,5 +31,5 @@ RUN wget -O alive.sh https://github.com/Snipavn/Rdp-Railway/raw/refs/heads/main/
 EXPOSE 3389
 
 # CMD khởi động XRDP và keepalive
-CMD mkdir -p /run/resolvconf && echo "nameserver 1.1.1.1" > /run/resolvconf/resolv.conf && \
+CMD mkdir -p /run/resolvconf && echo "nameserver 8.8.8.8" > /run/resolvconf/resolv.conf && \
     service dbus start && service xrdp start && bash alive.sh
