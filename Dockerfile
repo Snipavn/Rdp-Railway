@@ -23,8 +23,6 @@ RUN wget -O discord.deb "https://discord.com/api/download?platform=linux&format=
 RUN echo "startxfce4" > /home/snipavn/.xsession && \
     chown snipavn:snipavn /home/snipavn/.xsession
 
-# Ghi lại DNS để tránh mất mạng trong Railway
-RUN truncate -s 0 /etc/resolv.conf && echo "nameserver 1.1.1.1" > /etc/resolv.conf
 # Copy script giữ mạng Railway
 RUN wget -O alive.sh https://github.com/Snipavn/Rdp-Railway/raw/refs/heads/main/keepalive.sh
 
