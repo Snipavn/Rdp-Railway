@@ -2,34 +2,33 @@ FROM ubuntu:22.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Cập nhật & cài gói cần thiết
+# Cập nhật và cài các gói cần thiết
 RUN apt update && apt upgrade -y && \
-    apt install -y xrdp xfce4 xfce4-goodies sudo curl wget dbus-x11 xterm software-properties-common gnupg2
+    apt install -y xrdp lxde-core lxde-common lxterminal sudo wget curl dbus-x11 xterm --no-install-recommends && \
+    apt clean && rm -rf /var/lib/apt/lists/*
 
-# Tạo user
+# Tạo user mới
 RUN useradd -m snipavn && echo 'snipavn:meobell' | chpasswd && adduser snipavn sudo
 
 # Cài Google Chrome
 RUN wget -O chrome.deb https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb && \
-    apt install -y ./chrome.deb || apt --fix-broken install -y && \
-    rm -f chrome.deb
+    apt update && apt install -y ./chrome.deb || apt --fix-broken install -y && rm -f chrome.deb
 
-# Cài Discord bản chính chủ (.deb)
+# Cài Discord
 RUN wget -O discord.deb "https://discord.com/api/download?platform=linux&format=deb" && \
-    apt install -y ./discord.deb || apt --fix-broken install -y && \
-    rm -f discord.deb
+    apt install -y ./discord.deb || apt --fix-broken install -y && rm -f discord.deb
 
-# Cấu hình XFCE cho xrdp
-RUN echo "startxfce4" > /home/snipavn/.xsession && \
+# Cấu hình session cho LXDE
+RUN echo "startlxsession" > /home/snipavn/.xsession && \
     chown snipavn:snipavn /home/snipavn/.xsession
 
 # Copy script giữ mạng Railway
-RUN wget -O alive.sh https://github.com/Snipavn/Rdp-Railway/raw/refs/heads/main/keepalive.sh
-# tạo file 
+RUN wget -O /alive.sh https://github.com/Snipavn/Rdp-Railway/raw/refs/heads/main/keepalive.sh && \
+    chmod +x /alive.sh
 
-# Mở port XRDP
+# Mở cổng XRDP
 EXPOSE 3389
 
-# CMD khởi động XRDP và keepalive
+# CMD khởi động các dịch vụ
 CMD mkdir -p /run/resolvconf && echo "nameserver 8.8.8.8" > /run/resolvconf/resolv.conf && \
-    service dbus start && service xrdp start && bash alive.sh
+    service dbus start && service xrdp start && bash /alive.sh
