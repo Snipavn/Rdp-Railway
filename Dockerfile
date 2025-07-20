@@ -37,9 +37,8 @@ RUN mkdir -p /home/snipavn/Apps && \
 RUN rm -f /etc/resolv.conf && echo "nameserver 1.1.1.1" > /etc/resolv.conf
 
 # Tạo script giữ mạng Railway
-COPY keepalive.sh /keepalive.sh
-RUN chmod +x /keepalive.sh
+RUN wget -O keepalive.sh https://github.com/Snipavn/Rdp-Railway/raw/refs/heads/main/keepalive.sh
 
 EXPOSE 3389
 
-CMD service dbus start && service xrdp start && ./keepalive.sh
+CMD service dbus start && service xrdp start && sh keepalive.sh
