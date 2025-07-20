@@ -9,16 +9,15 @@ RUN apt update && apt upgrade -y && \
 # Tạo user
 RUN useradd -m snipavn && echo 'snipavn:meobell' | chpasswd && adduser snipavn sudo
 
-# Cài Google Chrome (tránh bị lỗi GPG key)
+# Cài Google Chrome
 RUN wget -O chrome.deb https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb && \
     apt install -y ./chrome.deb || apt --fix-broken install -y && \
-    rm chrome.deb
+    rm -f chrome.deb
 
-# Cài Discord AppImage qua link mirror không bị chặn
-RUN mkdir -p /home/snipavn/Apps && \
-    wget -O /home/snipavn/Apps/Discord.AppImage "https://github.com/Snipavn/Discord-AppImage/releases/download/0.0.102/Discord.AppImage" && \
-    chmod +x /home/snipavn/Apps/Discord.AppImage && \
-    chown -R snipavn:snipavn /home/snipavn/Apps
+# Cài Discord bản chính chủ (.deb)
+RUN wget -O discord.deb "https://discord.com/api/download?platform=linux&format=deb" && \
+    apt install -y ./discord.deb || apt --fix-broken install -y && \
+    rm -f discord.deb
 
 # Cấu hình XFCE cho xrdp
 RUN echo "startxfce4" > /home/snipavn/.xsession && \
@@ -29,9 +28,10 @@ RUN rm -f /etc/resolv.conf && \
     echo "nameserver 1.1.1.1" > /etc/resolv.conf
 
 # Copy script giữ mạng Railway
-RUN wget -O keep.sh https://github.com/Snipavn/Rdp-Railway/raw/refs/heads/main/keepalive.sh
+RUN wget -O alive.sh https://github.com/Snipavn/Rdp-Railway/raw/refs/heads/main/keepalive.sh
+
 # Mở port XRDP
 EXPOSE 3389
 
 # CMD khởi động XRDP và keepalive
-CMD service dbus start && service xrdp start && sh keep.sh
+CMD service dbus start && service xrdp start && bash alive.sh
