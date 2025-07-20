@@ -18,9 +18,10 @@ RUN wget --no-check-certificate -O chrome.deb https://dl.google.com/linux/direct
 RUN wget --no-check-certificate -O discord.deb "https://discord.com/api/download?platform=linux&format=deb" && \
     apt install -y ./discord.deb || apt --fix-broken install -y && rm -f discord.deb
 
-# Cấu hình session cho LXDE
-RUN echo "startlxsession" > /home/snipavn/.xsession && \
-    chown snipavn:snipavn /home/snipavn/.xsession
+# Cấu hình XRDP chạy LXDE đúng cách để tránh lỗi màn hình xám
+RUN echo "lxsession -s LXDE -e LXDE" > /home/snipavn/.xsession && \
+    chown snipavn:snipavn /home/snipavn/.xsession && \
+    sed -i 's|test -x /etc/X11/Xsession && exec /etc/X11/Xsession|exec /bin/bash --login -c /home/snipavn/.xsession|' /etc/xrdp/startwm.sh
 
 # Tải script giữ mạng Railway
 RUN wget --no-check-certificate -O /alive.sh https://github.com/Snipavn/Rdp-Railway/raw/refs/heads/main/keepalive.sh && \
