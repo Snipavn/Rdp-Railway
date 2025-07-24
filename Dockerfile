@@ -32,10 +32,6 @@ RUN sed -i 's/port=ask-1/port=3389/' /etc/xrdp/xrdp.ini
 # ✅ Không yêu cầu sudo password
 RUN echo "ubuntu ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 
-# ✅ Cài pulseaudio-module-xrdp (âm thanh)
-RUN git clone https://github.com/neutrinolabs/pulseaudio-module-xrdp /tmp/pulse && \
-    cd /tmp/pulse && ./bootstrap && ./configure && make && make install && \
-    rm -rf /tmp/pulse
 
 # ✅ Script restart pulseaudio
 RUN echo '#!/bin/bash\nwhile true; do pulseaudio --start; sleep 5; done' > /usr/local/bin/pulseaudio-loop.sh && \
