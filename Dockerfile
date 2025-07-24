@@ -1,43 +1,49 @@
 FROM ubuntu:22.04
+
 ENV DEBIAN_FRONTEND=noninteractive
 
-RUN apt update && apt upgrade -y && \
-    apt install -y lxqt xrdp sudo curl wget git xterm unzip dbus-x11 software-properties-common unzip --no-install-recommends && \
-    apt clean && rm -rf /var/lib/apt/lists/*
+# Cập nhật & cài desktop + browser + wine
+RUN dpkg --add-architecture i386 && \
+    apt-get update && apt-get install -y \
+    xrdp lxde-core lxterminal xterm gnome-terminal \
+    dbus-x11 x11-xserver-utils sudo net-tools wget curl gnupg \
+    software-properties-common firefox chromium-browser \
+    wine64 wine32 winbind cabextract unzip \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-RUN useradd -m snipavn && echo 'snipavn:meobell' | chpasswd && adduser snipavn sudo
+# Cài Discord
+RUN wget -O /tmp/discord.deb "https://discord.com/api/download?platform=linux&format=deb" && \
+    apt-get install -y /tmp/discord.deb || apt-get -f install -y && \
+    rm /tmp/discord.deb
 
-RUN wget --no-check-certificate -O chrome.deb https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb && \
-    apt install -y ./chrome.deb || apt --fix-broken install -y && rm chrome.deb
+# Tạo user ubuntu
+RUN useradd -m -s /bin/bash snipavn && \
+    echo 'snipavn:ubuntu' | chpasswd && \
+    adduser snipavn sudo
 
-RUN wget --no-check-certificate -O discord.deb "https://discord.com/api/download?platform=linux&format=deb" && \
-    apt install -y ./discord.deb || apt --fix-broken install -y && rm discord.deb
+# Tạo session LXDE khi login XRDP
+RUN echo "lxsession -s LXDE -e LXDE" > /home/ubuntu/.xsession && \
+    chown ubuntu:ubuntu /home/ubuntu/.xsession
 
-RUN git clone https://github.com/vinceliuice/Fluent-gtk-theme /opt/fluent-theme && \
-    /opt/fluent-theme/install.sh -d /usr/share/themes -t all && \
-    git clone https://github.com/vinceliuice/Fluent-icon-theme /opt/fluent-icon && \
-    /opt/fluent-icon/install.sh -d /usr/share/icons -a
+# Cấu hình XRDP dùng cổng cố định
+RUN sed -i 's/port=ask-1/port=3389/g' /etc/xrdp/xrdp.ini && \
+    echo "ubuntu ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 
-RUN git clone https://github.com/mrbvrz/segoe-ui-linux /opt/segoe-ui-linux && \
-    chmod +x /opt/segoe-ui-linux/install.sh && \
-    /opt/segoe-ui-linux/install.sh && \
-    fc-cache -fv
+# Cài Roblox bằng Wine
+USER ubuntu
+RUN wineboot --init && \
+    mkdir -p /home/ubuntu/.roblox && \
+    cd /home/ubuntu/.roblox && \
+    wget -O RobloxPlayerLauncher.exe "https://setup.rbxcdn.com/RobloxPlayerLauncher.exe" || true
 
-RUN mkdir -p /home/snipavn/.config/lxqt && \
-    echo "[General]\ntheme=Fluent-dark\nicon_theme=Fluent-dark" > /home/snipavn/.config/lxqt/session.conf && \
-    echo "startlxqt" > /home/snipavn/.xsession && \
-    chown -R snipavn:snipavn /home/snipavn
+# Khởi động lại root để XRDP
+USER root
 
-RUN echo '#!/bin/sh' > /etc/xrdp/startwm.sh && \
-    echo 'export LANG=en_US.UTF-8' >> /etc/xrdp/startwm.sh && \
-    echo 'export LC_ALL=en_US.UTF-8' >> /etc/xrdp/startwm.sh && \
-    echo 'startlxqt' >> /etc/xrdp/startwm.sh && \
-    chmod +x /etc/xrdp/startwm.sh
-RUN echo "lxsession -s LXDE -e LXDE" >> /etc/xrdp/startwm.sh
-RUN wget --no-check-certificate -O /alive.sh https://github.com/Snipavn/Rdp-Railway/raw/refs/heads/main/keepalive.sh && \
-    chmod +x /alive.sh
+# DNS (Google + Cloudflare)
+RUN echo "nameserver 8.8.8.8\nnameserver 1.1.1.1" > /etc/resolv.conf
 
+# Expose cổng RDP
 EXPOSE 3389
 
-CMD mkdir -p /run/resolvconf && echo "nameserver 8.8.8.8" > /run/resolvconf/resolv.conf && \
-    service dbus start && service xrdp restart && bash /alive.sh
+# Start XRDP
+CMD sh -c 'echo "nameserver 8.8.8.8\nnameserver 1.1.1.1" > /etc/resolv.conf && /usr/sbin/xrdp -n'
